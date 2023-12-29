@@ -5,14 +5,37 @@ import pygrib
 import pandas as pd
 import os
 
+def find_file_with_largest_prefix(directory):
+    # Step 1: Get a list of files in the target directory
+    files = os.listdir(directory)
+
+    if "gfs_dataframe.parquet" in files:
+        return "gfs_dataframe.parquet"
+
+    # Step 2 and 3: Extract prefixes and determine their lengths
+    prefixes_and_lengths = [(file, int(file[file.rfind('_')+1:file.find('.')])) for file in files]
+
+    # Step 4: Identify the file with the longest prefix
+    if prefixes_and_lengths:
+        max_prefix_file = max(prefixes_and_lengths, key=lambda x: x[1])[0]
+        return os.path.join(directory, max_prefix_file)
+    else:
+        return None
+
+# Example usage:
+result = find_file_with_largest_prefix("./")
+df = pd.read_parquet(result)
+
+# 2015, 1, 15 start date
 current_date = datetime.datetime(2015, 1, 15)
-end_date = datetime.datetime(2015, 2, 15)
+end_date = datetime.datetime(2015, 6, 15)
 # current_year = datetime.datetime.today().year
 # current_month = datetime.datetime.today().month
 # current_day = datetime.datetime.today().day
 # end_date = datetime.datetime(current_year, current_month, current_day)
 
-coord_index = 0
+coord_index = ((df['coord_index']).max() + 1) * 6
+current_date = current_date + datetime.timedelta(hours=coord_index)
 
 columns = [
     "coord_index",
@@ -33,6 +56,8 @@ columns = [
 df = pd.DataFrame(columns=columns)
 
 pbar = tqdm(total = (1 * 30 * 4 * (10 * 20)))
+
+
 
 while True:
     if end_date == current_date:
@@ -98,4 +123,3 @@ while True:
     current_date += datetime.timedelta(hours=6)
 
 df.to_parquet(f"gfs_dataframe.parquet")
-

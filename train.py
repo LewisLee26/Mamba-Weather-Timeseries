@@ -1,10 +1,3 @@
-import pandas as pd
-
-# Read Parquet file into a DataFrame
-df = pd.read_parquet('gfs_dataframe_1.parquet')
-
-# Display the DataFrame
-print(df)
 
 import torch
 import torch.nn as nn
