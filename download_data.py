@@ -13,7 +13,7 @@ def find_file_with_largest_prefix(directory):
         return "gfs_dataframe.parquet"
 
     # Step 2 and 3: Extract prefixes and determine their lengths
-    prefixes_and_lengths = [(file, int(file[file.rfind('_')+1:file.find('.')])) for file in files]
+    prefixes_and_lengths = [(file, int(file[file.rfind('_')+1:file.rfind('.')])) for file in files]
 
     # Step 4: Identify the file with the longest prefix
     if prefixes_and_lengths:
