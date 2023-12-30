@@ -30,19 +30,24 @@ class Mamba(nn.Module):
     def __init__(self, args: ModelArgs):
         super().__init__()
         self.args = args
-
-        self.linear = nn.Linear(args.features, args.d_model)
+        
+        self.encode = nn.Linear(args.features, args.d_model)
         self.layers = nn.ModuleList([ResidualBlock(args) for _ in range(args.n_layer)])
         self.norm_f = RMSNorm(args.d_model)
 
-    def forward(self, sequences):
-        x = self.linear(sequences)
+        self.lm_head = nn.Linear(args.d_model, args.features, bias=False)  
+        self.decode = nn.Linear(args.d_model, args.features)
 
+    def forward(self, input_ids):
+        x = self.encode(input_ids)
+        
         for layer in self.layers:
             x = layer(x)
+            
         x = self.norm_f(x)
-
+        x = self.decode(x)
         return x
+
 
 class ResidualBlock(nn.Module):
     def __init__(self, args: ModelArgs):
