@@ -1,7 +1,7 @@
 # Mamba Weather Timeseries
 
 ## Overview
-This repository is for a Mamba model trained to predict weather timeseries data. 
+This repository is for comparing a Mamba model to a LSTM model for weather prediction timeseries data.
 
 ## Dataset 
 The model is trained on 8 varaibles from the GFS 0.25 degree dataset. The training dataset has a sample size of 36,160 and the test dataset has a sample size of 9,040. 
