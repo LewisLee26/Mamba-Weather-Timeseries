@@ -35,7 +35,6 @@ class Mamba(nn.Module):
         self.layers = nn.ModuleList([ResidualBlock(args) for _ in range(args.n_layer)])
         self.norm_f = RMSNorm(args.d_model)
 
-        self.lm_head = nn.Linear(args.d_model, args.features, bias=False)  
         self.decode = nn.Linear(args.d_model, args.features)
 
     def forward(self, input_ids):
