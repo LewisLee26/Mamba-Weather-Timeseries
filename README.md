@@ -38,3 +38,4 @@ Both models have the save parameters:
 |Water equivalent of accumulated snow depth|1.4074e-06|**1.1085e-12**|
 |Average|**0.00018**|0.00068|
 
+*Lower MSE is better and shown in bold* 
