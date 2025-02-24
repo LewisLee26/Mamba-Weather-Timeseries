@@ -18,3 +18,4 @@ dependencies:
   - pip
   - pip:
     - causal-conv1d>=1.4.0
+    - triton
