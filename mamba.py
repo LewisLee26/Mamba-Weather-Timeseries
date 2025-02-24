@@ -35,7 +35,6 @@ class Mamba(nn.Module):
 
         self.conv = nn.Conv3d(args.features, args.d_model, args.patch_size)
         self.pos_encode = PositionalEncoding3D(args.d_model)
-        # self.encode = nn.Linear(args.features, args.d_model)
         self.layers = nn.ModuleList([ResidualBlock(args) for _ in range(args.n_layer)])
         self.norm_f = RMSNorm(args.d_model)
 

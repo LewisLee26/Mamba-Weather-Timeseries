@@ -66,13 +66,6 @@ dataset = WeatherDataset(surface_tensor, upper_tensor)
 
 inputs, targets = dataset[0]
 surface, upper = inputs
-# num_features = 5
-# num_enc_features = 1
-# patch_size = (2, 4, 4)
-# batch_size = 1
-
-# pos_encoding = PositionalEncodingPermute3D(num_enc_features)
-# conv = torch.nn.Conv3d(num_features, num_enc_features, patch_size, patch_size)
 
 model = Mamba(model_args)
 
