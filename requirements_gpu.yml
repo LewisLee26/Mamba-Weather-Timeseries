@@ -9,6 +9,7 @@ dependencies:
   - pytorch
   - pytorch-cuda=12.4
   - numpy
+  - einops
   - tqdm
   - xarray
   - zarr
