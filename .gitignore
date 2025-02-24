@@ -1,3 +1,4 @@
-data
-wandb
+data/*
+!data/.gitkeep
 model
+.DS_Store
