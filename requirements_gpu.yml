@@ -1,0 +1,19 @@
+name: mamba_weather
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+  - nvidia
+dependencies:
+  - python
+  - pytorch
+  - pytorch-cuda=12.4
+  - numpy
+  - tqdm
+  - xarray
+  - zarr
+  - dask
+  - gcsfs
+  - pip
+  - pip:
+    - causal-conv1d>=1.4.0
