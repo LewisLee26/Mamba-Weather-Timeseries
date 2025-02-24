@@ -10,7 +10,8 @@ class WeatherDataset(Dataset):
         self.upper = upper
 
     def __len__(self) -> int:
-        return len(self.surface) - self.step
+        # return len(self.surface) - self.step
+        return self.upper.size(0) - self.step
 
     def __getitem__(
         self, idx: int
@@ -19,4 +20,3 @@ class WeatherDataset(Dataset):
             self.surface[idx + self.step],
             self.upper[idx + self.step],
         )
-

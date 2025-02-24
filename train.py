@@ -1,7 +1,8 @@
 import torch
+from torch.utils.data import DataLoader, Subset
 import numpy as np
 from utils.dataset import WeatherDataset
-import os
+import xarray as xr
 from datetime import datetime, timedelta
 from mamba import Mamba, ModelArgs
 
@@ -10,6 +11,8 @@ start_date_str = "2020-01-01"
 end_date_str = "2020-01-01"
 time_interval_hours = 6
 data_dir = "data"
+test_size = 0.2
+batch_size = 1
 
 model_args = ModelArgs(
     d_model=2,
@@ -20,55 +23,97 @@ model_args = ModelArgs(
 )
 
 
-# Load data
-def load_data(data_dir, date_str, time_str):
-    dir_path = os.path.join(data_dir, date_str, time_str)
+def load_data_from_zarr(zarr_path, start_date_str, end_date_str, time_interval_hours):
+    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
-    try:
-        input_surface = np.load(os.path.join(dir_path, "input_surface.npy"))
-        input_upper = np.load(os.path.join(dir_path, "input_upper.npy"))
-        return input_surface, input_upper
-    except FileNotFoundError:
-        print(f"Error: Data not found in {dir_path}")
-        return None, None
+    ds = xr.open_zarr(zarr_path)
+
+    start_time = start_date
+    end_time = end_date + timedelta(days=1) - timedelta(hours=time_interval_hours)
+
+    ds_filtered = ds.sel(time=slice(start_time, end_time))
+
+    surface_vars = [
+        "mean_sea_level_pressure",
+        "10m_u_component_of_wind",
+        "10m_v_component_of_wind",
+        "2m_temperature",
+    ]
+    upper_vars = [
+        "geopotential",
+        "specific_humidity",
+        "temperature",
+        "u_component_of_wind",
+        "v_component_of_wind",
+    ]
+
+    surface_data = ds_filtered[surface_vars]
+    upper_data = ds_filtered[upper_vars]
+
+    # Extract NumPy arrays from DataArrays within the Dataset
+    surface_numpy_list = [surface_data[var].values for var in surface_vars]
+    upper_numpy_list = [upper_data[var].values for var in upper_vars]
+
+    # Stack the NumPy arrays along a new dimension (channel dimension)
+    surface_numpy = np.stack(surface_numpy_list, axis=0)
+    upper_numpy = np.stack(upper_numpy_list, axis=0)
+
+    surface_tensor = torch.from_numpy(surface_numpy).float().transpose(0, 1)
+    upper_tensor = torch.from_numpy(upper_numpy).float().transpose(0, 1)
+
+    times = ds_filtered.time.values
+
+    return surface_tensor, upper_tensor, times
 
 
-start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
-current_date = start_date
+# Example usage:
+zarr_path = "output.zarr"  # Replace with your Zarr file path
+start_date_str = "2020-01-01"
+end_date_str = "2020-01-02"
+time_interval_hours = 6  # or other interval
 
-surface_data_list = []
-upper_data_list = []
-times_list = []
+surface_tensor, upper_tensor, times = load_data_from_zarr(
+    zarr_path, start_date_str, end_date_str, time_interval_hours
+)
 
-while current_date <= end_date:
-    for hour in range(0, 24, time_interval_hours):
-        time_str = f"{hour:02d}:00"
-        date_str = current_date.strftime("%Y-%m-%d")
+print("Surface Tensor shape:", surface_tensor.shape)
+print("Upper Tensor shape:", upper_tensor.shape)
+print("times array shape:", times.shape)
 
-        input_surface, input_upper = load_data(data_dir, date_str, time_str)
-
-        if input_surface is not None and input_upper is not None:
-            surface_data_list.append(input_surface)
-            upper_data_list.append(input_upper)
-            times_list.append(
-                datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
-            )
-    current_date += timedelta(days=1)
-
-surface_data = np.stack(surface_data_list, axis=0)
-upper_data = np.stack(upper_data_list, axis=0)
-
-surface_tensor = torch.from_numpy(surface_data)
-upper_tensor = torch.from_numpy(upper_data)
+# surface_tensor = torch.from_numpy(surface_data)
+# upper_tensor = torch.from_numpy(upper_data)
 
 dataset = WeatherDataset(surface_tensor, upper_tensor)
+print(len(dataset))
+dataloader = DataLoader(dataset)
 
 inputs, targets = dataset[0]
 surface, upper = inputs
 
 model = Mamba(model_args)
 
-upper = torch.unsqueeze(upper, 0)
-output = model(upper)
-print(output.shape)
+# upper = torch.unsqueeze(upper, 0)
+# output = model(upper)
+# print(output.shape)
+
+# Split into test and train datasets
+test_size = int(len(dataset) * test_size)
+train_size = len(dataset) - test_size
+
+indices = np.arange(len(dataset))
+train_indices = indices[:train_size]
+test_indices = indices[train_size:]
+
+train_dataset = Subset(dataset, train_indices)
+test_dataset = Subset(dataset, test_indices)
+
+train_loader = DataLoader(
+    train_dataset, batch_size=batch_size, shuffle=True, drop_last=True
+)
+test_loader = DataLoader(
+    test_dataset, batch_size=batch_size, shuffle=False, drop_last=True
+)
+
+for i in train_dataset:
+    print(len(i))
