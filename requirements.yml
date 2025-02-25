@@ -13,7 +13,3 @@ dependencies:
   - zarr
   - dask
   - gcsfs
-  - pip:
-    - triton
-
-
