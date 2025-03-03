@@ -23,8 +23,8 @@ def log_time(func):
 @log_time
 def process_and_save_data(start_date, end_date, output_path):
     ds = xr.open_zarr(
-        "gs://weatherbench2/datasets/era5/1959-2023_01_10-full_37-1h-0p25deg-chunk-1.zarr",
-        chunks={"time": "auto"},  # Let xarray decide the chunks
+        "gs://weatherbench2/datasets/era5/1959-2023_01_10-wb13-6h-1440x721_with_derived_variables.zarr",
+        chunks={"time": "auto"},
     )
 
     ds_filtered = ds.sel(time=slice(start_date, end_date))
@@ -45,7 +45,7 @@ def process_and_save_data(start_date, end_date, output_path):
 
     selected_data = ds_filtered[surface_vars + upper_vars].astype(np.float32)
 
-    selected_data.to_zarr(output_path, mode="w")  # Save as Zarr
+    selected_data.to_zarr(output_path, mode="w")
 
 
 if __name__ == "__main__":
