@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir --no-build-isolation \
     tqdm \
     xarray \
     zarr \
+    netCDF4 \
     dask \
     gcsfs \
     tensorboardX==2.6.2.2 \
