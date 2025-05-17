@@ -1,0 +1,8 @@
+torch==2.6.0
+mamba-ssm==2.2.4 --no-build-isolation
+timm==1.0.15
+tensorboardX==2.6.2.2
+einops==0.8.1
+transformers==4.50.0
+Pillow==11.1.0
+requests==2.32.3
